@@ -66,8 +66,6 @@ func readFile(fileName string) (map[int][]int, [][]int, error) {
 
 func checkOccurence(currentNum int, seen []int, rules map[int][]int) bool {
 	vals, ok := rules[currentNum]
-
-	fmt.Println(vals)
 	if !ok {
 		return true
 	}
@@ -85,9 +83,50 @@ func checkOccurence(currentNum int, seen []int, rules map[int][]int) bool {
 	return true
 }
 
-func iteratePages(pages [][]int, rules map[int][]int) {
-	sumMidValues := 0
+func sort(rules map[int][]int, input []int) []int {
+	visited := make(map[int]bool) // Tracks visited nodes
+	stack := []int{}              // Stack to hold the topologically sorted nodes
 
+	// Helper function to check if a node is part of the input list
+	isInInput := func(node int) bool {
+		for _, page := range input {
+			if page == node {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Recursive DFS
+	var dfs func(node int)
+	dfs = func(node int) {
+		if visited[node] {
+			return
+		}
+		visited[node] = true
+		for _, dependent := range rules[node] {
+			if isInInput(dependent) {
+				dfs(dependent)
+			}
+		}
+		stack = append(stack, node)
+	}
+	for _, num := range input {
+		if !visited[num] {
+			dfs(num)
+		}
+	}
+	result := []int{}
+	for i := len(stack) - 1; i >= 0; i-- {
+		result = append(result, stack[i])
+	}
+
+	return result
+}
+
+func iteratePages(pages [][]int, rules map[int][]int) (int, int) {
+	sumMidValues := 0
+	sumReorderedMidValues := 0
 	for _, update := range pages {
 		var seen []int
 		isValid := true
@@ -102,10 +141,14 @@ func iteratePages(pages [][]int, rules map[int][]int) {
 
 		if isValid {
 			sumMidValues += update[len(update)/2]
+		} else {
+			// Reorder the incorrect update
+			reordered := sort(rules, update)
+			sumReorderedMidValues += reordered[len(reordered)/2]
 		}
 	}
+	return sumMidValues, sumReorderedMidValues
 
-	fmt.Printf("Sum of middle values: %d\n", sumMidValues)
 }
 
 func main() {
@@ -114,5 +157,8 @@ func main() {
 		fmt.Println("Error reading file:", err)
 		return
 	}
-	iteratePages(pages, rules)
+	partOne, partTwo := iteratePages(pages, rules)
+
+	fmt.Printf("Part one: %d\n", partOne)
+	fmt.Printf("Part two: %d\n", partTwo)
 }
