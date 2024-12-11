@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Number of days
-num_days=10  # You can change this number to the desired number of days
+num_days=11  # You can change this number to the desired number of days
 
 # Loop through each day and create the folders and files
-for (( day=1; day<=num_days; day++ ))
+for (( day=10; day<=num_days; day++ ))
 do
     # Create the folder
     folder_name="day_$day"
